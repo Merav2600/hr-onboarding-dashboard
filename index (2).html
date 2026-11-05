@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Employee Onboarding Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+<div id="cdn-warning" role="alert" style="display:none" class="bg-red-600 text-white text-sm text-center px-4 py-2"></div>
+
+<header class="bg-white border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-slate-900">HR Employee Onboarding Dashboard</h1>
+      <p class="text-sm text-slate-500">Real-time onboarding tracking across IT, Paperwork and Training</p>
+    </div>
+    <div class="text-sm text-slate-500 text-right">
+      <div>Report date: <span class="font-medium text-slate-700">5 Nov 2026</span></div>
+      <div class="text-xs">Mock data &middot; 20 new hires</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+  <!-- KPI cards -->
+  <section aria-label="Key metrics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-slate-500">New hires onboarding</p>
+        <span id="kpi-overdue" class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 overdue</span>
+      </div>
+      <p id="kpi-onboarding" class="mt-2 text-3xl font-bold text-blue-600">—</p>
+      <p class="mt-1 text-xs text-slate-400">Not yet fully completed</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-slate-500">Avg onboarding duration</p>
+      <p id="kpi-days" class="mt-2 text-3xl font-bold text-slate-800">—</p>
+      <p id="kpi-days-note" class="mt-1 text-xs text-slate-400">Target: 30 days</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-slate-500">Task completion rate</p>
+      <p id="kpi-rate" class="mt-2 text-3xl font-bold text-emerald-600">—</p>
+      <div class="mt-2 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div id="kpi-rate-bar" class="h-2 bg-emerald-500 rounded-full transition-all" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-slate-500">Avg onboarding CSAT</p>
+      <p id="kpi-csat" class="mt-2 text-3xl font-bold text-slate-800">—</p>
+      <p id="kpi-csat-note" class="mt-1 text-xs text-slate-400">Scale 1–5</p>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section aria-label="Charts" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <h2 class="text-base font-semibold text-slate-900">Bottlenecks by stage</h2>
+      <p id="bottleneck-note" class="text-xs text-slate-500 mb-3">—</p>
+      <div class="relative h-64"><canvas id="chart-bottleneck" aria-label="Stacked bar chart of status by onboarding stage" role="img"></canvas></div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Department breakdown</h2>
+          <p class="text-xs text-slate-500 mb-3">Click a bar to filter the table by department</p>
+        </div>
+        <div class="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs shrink-0" role="group" aria-label="Department chart metric">
+          <button id="mode-load" class="px-3 py-1.5 bg-blue-600 text-white">Onboarding</button>
+          <button id="mode-days" class="px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50">Avg days</button>
+        </div>
+      </div>
+      <div class="relative h-64"><canvas id="chart-dept" aria-label="Bar chart by department" role="img"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Filters + table -->
+  <section aria-label="Employee table" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+    <div class="p-5 border-b border-slate-200 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-base font-semibold text-slate-900">Employee onboarding details</h2>
+        <p id="result-count" class="text-sm text-slate-500"></p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <input id="f-search" type="search" placeholder="Search name or ID…" aria-label="Search by name or ID"
+               class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="f-dept" aria-label="Filter by department" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+        <select id="f-status" aria-label="Filter by status" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+        <select id="f-manager" aria-label="Filter by direct manager" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+        <button id="f-reset" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Reset filters</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr id="table-head"></tr>
+        </thead>
+        <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+    <div class="p-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 text-sm text-slate-600">
+      <span id="page-info"></span>
+      <div class="flex gap-2">
+        <button id="prev" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+        <button id="next" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="text-xs text-slate-400 text-center pb-4">All employee data is fictional and used for demonstration only.</footer>
+</main>
+
+<script>
+/* ---------- Configuration ---------- */
+const REPORT_DATE = new Date('2026-11-05T00:00:00');
+const TARGET_DAYS = 30;
+const PAGE_SIZE = 10;
+
+/* ---------- Mock data (schema per SPEC.md, Section 4) ---------- */
+const EMPLOYEES = [
+  { employee_id:'EMP-1001', full_name:'Dana Levi',       department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-09-14', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:12 },
+  { employee_id:'EMP-1002', full_name:'Noam Barak',      department:'Sales',            direct_manager:'Tamar Golan',  start_date:'2026-10-05', equipment_status:'Ordered',   paperwork_status:'In Progress', training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1003', full_name:'Yael Sharon',     department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-10-12', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1004', full_name:'Eitan Mor',       department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-10-19', equipment_status:'Blocked',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1005', full_name:'Shira Ben-David', department:'Finance',          direct_manager:'Lior Peretz',  start_date:'2026-09-21', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:18 },
+  { employee_id:'EMP-1006', full_name:'Amit Cohen',      department:'Customer Support', direct_manager:'Maya Shalev',  start_date:'2026-11-02', equipment_status:'Pending',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1007', full_name:'Roni Azulay',     department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-09-08', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:21 },
+  { employee_id:'EMP-1008', full_name:'Gal Mizrahi',     department:'Sales',            direct_manager:'Hila Amar',    start_date:'2026-09-28', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:14 },
+  { employee_id:'EMP-1009', full_name:'Tal Friedman',    department:'Operations',       direct_manager:'Gil Hadad',    start_date:'2026-10-07', equipment_status:'Delivered', paperwork_status:'In Progress', training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1010', full_name:'Liat Navon',      department:'HR',               direct_manager:'Noa Segal',    start_date:'2026-09-15', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:10 },
+  { employee_id:'EMP-1011', full_name:'Yuval Peled',     department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-10-14', equipment_status:'Blocked',   paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1012', full_name:'Michal Stern',    department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-09-22', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:3,    days_to_complete:27 },
+  { employee_id:'EMP-1013', full_name:'Idan Rosen',      department:'Sales',            direct_manager:'Tamar Golan',  start_date:'2026-10-21', equipment_status:'Ordered',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1014', full_name:'Adi Tzur',        department:'Customer Support', direct_manager:'Maya Shalev',  start_date:'2026-09-30', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:16 },
+  { employee_id:'EMP-1015', full_name:'Ofir Kaplan',     department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-10-26', equipment_status:'Ordered',   paperwork_status:'In Progress', training_status:'Not Started', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1016', full_name:'Hadas Weiss',     department:'Finance',          direct_manager:'Lior Peretz',  start_date:'2026-10-09', equipment_status:'Delivered', paperwork_status:'Blocked',     training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1017', full_name:'Nadav Oren',      department:'Operations',       direct_manager:'Gil Hadad',    start_date:'2026-09-17', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:19 },
+  { employee_id:'EMP-1018', full_name:'Reut Biton',      department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-10-28', equipment_status:'Pending',   paperwork_status:'In Progress', training_status:'Not Started', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1019', full_name:'Elad Haim',       department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-10-02', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
+  { employee_id:'EMP-1020', full_name:'Karin Dror',      department:'Sales',            direct_manager:'Hila Amar',    start_date:'2026-09-10', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:23 }
+];
+
+/* ---------- Domain helpers ---------- */
+const STAGES = [
+  { key:'equipment_status', label:'IT Equipment',       done:'Delivered', progress:['Ordered'],     },
+  { key:'paperwork_status', label:'Document Signing',   done:'Completed', progress:['In Progress'], },
+  { key:'training_status',  label:'Mandatory Training', done:'Completed', progress:['In Progress'], }
+];
+const STATE_COLORS = { 'Completed':'#10b981', 'In Progress':'#f59e0b', 'Not Started':'#94a3b8', 'Blocked':'#ef4444' };
+const DEPARTMENTS = [...new Set(EMPLOYEES.map(e => e.department))].sort();
+const MANAGERS = [...new Set(EMPLOYEES.map(e => e.direct_manager))].sort();
+
+function stageState(e, s) {
+  const v = e[s.key];
+  if (v === s.done) return 'Completed';
+  if (v === 'Blocked') return 'Blocked';
+  if (s.progress.includes(v)) return 'In Progress';
+  return 'Not Started';
+}
+function overallStatus(e) {
+  const st = STAGES.map(s => stageState(e, s));
+  if (st.every(x => x === 'Completed')) return 'Completed';
+  if (st.every(x => x === 'Not Started')) return 'Not Started';
+  return 'In Progress';
+}
+function daysSinceStart(e) {
+  return Math.floor((REPORT_DATE - new Date(e.start_date + 'T00:00:00')) / 86400000);
+}
+const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+function badge(value) {
+  const map = {
+    'Completed':'bg-emerald-100 text-emerald-800', 'Delivered':'bg-emerald-100 text-emerald-800',
+    'In Progress':'bg-amber-100 text-amber-800',   'Ordered':'bg-amber-100 text-amber-800',
+    'Pending':'bg-slate-100 text-slate-600',       'Not Started':'bg-slate-100 text-slate-600',
+    'Blocked':'bg-red-100 text-red-800'
+  };
+  return `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${map[value] || 'bg-slate-100 text-slate-600'}">${esc(value)}</span>`;
+}
+
+/* ---------- State ---------- */
+const state = { search:'', dept:'All', status:'All', manager:'All', sortKey:'employee_id', sortDir:1, page:1, deptMode:'load' };
+
+const COLUMNS = [
+  { key:'employee_id', label:'Employee ID' }, { key:'full_name', label:'Full Name' },
+  { key:'department', label:'Department' },   { key:'direct_manager', label:'Direct Manager' },
+  { key:'start_date', label:'Start Date' },   { key:'equipment_status', label:'Equipment' },
+  { key:'paperwork_status', label:'Paperwork' }, { key:'training_status', label:'Training' },
+  { key:'csat_score', label:'CSAT' },         { key:'days_to_complete', label:'Days to Complete' }
+];
+
+function getFiltered() {
+  const q = state.search.trim().toLowerCase();
+  return EMPLOYEES.filter(e =>
+    (!q || e.full_name.toLowerCase().includes(q) || e.employee_id.toLowerCase().includes(q)) &&
+    (state.dept === 'All' || e.department === state.dept) &&
+    (state.status === 'All' || overallStatus(e) === state.status) &&
+    (state.manager === 'All' || e.direct_manager === state.manager)
+  );
+}
+
+/* ---------- KPIs ---------- */
+function renderKPIs(rows) {
+  const active = rows.filter(e => overallStatus(e) !== 'Completed');
+  const overdue = active.filter(e => daysSinceStart(e) > TARGET_DAYS).length;
+  const avgDays = avg(rows.filter(e => e.days_to_complete != null).map(e => e.days_to_complete));
+  const totalTasks = rows.length * STAGES.length;
+  const doneTasks = rows.reduce((n, e) => n + STAGES.filter(s => stageState(e, s) === 'Completed').length, 0);
+  const rate = totalTasks ? Math.round(doneTasks / totalTasks * 100) : null;
+  const avgCsat = avg(rows.filter(e => e.csat_score != null).map(e => e.csat_score));
+
+  document.getElementById('kpi-onboarding').textContent = rows.length ? active.length : '—';
+  const od = document.getElementById('kpi-overdue');
+  od.textContent = `${overdue} overdue`;
+  od.className = 'text-xs font-medium px-2 py-0.5 rounded-full ' + (overdue ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600');
+
+  const dEl = document.getElementById('kpi-days'), dNote = document.getElementById('kpi-days-note');
+  dEl.textContent = avgDays != null ? `${avgDays.toFixed(1)} days` : '—';
+  dEl.className = 'mt-2 text-3xl font-bold ' + (avgDays == null ? 'text-slate-800' : avgDays <= TARGET_DAYS ? 'text-emerald-600' : 'text-amber-600');
+  dNote.textContent = `Target: ${TARGET_DAYS} days` + (avgDays != null ? (avgDays <= TARGET_DAYS ? ' · on target' : ' · above target') : '');
+
+  document.getElementById('kpi-rate').textContent = rate != null ? `${rate}%` : '—';
+  document.getElementById('kpi-rate-bar').style.width = (rate || 0) + '%';
+
+  const cEl = document.getElementById('kpi-csat'), cNote = document.getElementById('kpi-csat-note');
+  cEl.textContent = avgCsat != null ? `${avgCsat.toFixed(1)} / 5` : '—';
+  cEl.className = 'mt-2 text-3xl font-bold ' + (avgCsat == null ? 'text-slate-800' : avgCsat >= 4 ? 'text-emerald-600' : avgCsat >= 3 ? 'text-amber-600' : 'text-red-600');
+  cNote.textContent = avgCsat != null ? `Based on ${rows.filter(e => e.csat_score != null).length} responses` : 'No responses yet';
+}
+
+/* ---------- Charts ---------- */
+let bottleneckChart, deptChart;
+
+function initCharts() {
+  bottleneckChart = new Chart(document.getElementById('chart-bottleneck'), {
+    type: 'bar',
+    data: { labels: STAGES.map(s => s.label),
+            datasets: Object.keys(STATE_COLORS).map(k => ({ label:k, data:[0,0,0], backgroundColor:STATE_COLORS[k], borderRadius:4 })) },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      scales: { x: { stacked:true, beginAtZero:true, ticks:{ precision:0 }, title:{ display:true, text:'Employees' } }, y: { stacked:true } },
+      plugins: { legend: { position:'bottom' } }
+    }
+  });
+  deptChart = new Chart(document.getElementById('chart-dept'), {
+    type: 'bar',
+    data: { labels: DEPARTMENTS, datasets: [{ label:'', data:[], backgroundColor:[], borderRadius:4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { beginAtZero:true, ticks:{ precision:0 }, title:{ display:true, text:'' } } },
+      plugins: { legend: { display:false } },
+      onClick: (evt, _els, chart) => {
+        const pts = chart.getElementsAtEventForMode(evt, 'nearest', { intersect:true }, true);
+        if (!pts.length) return;
+        const dept = DEPARTMENTS[pts[0].index];
+        state.dept = state.dept === dept ? 'All' : dept;
+        document.getElementById('f-dept').value = state.dept;
+        state.page = 1;
+        render();
+      },
+      onHover: (evt, els) => { evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; }
+    }
+  });
+}
+
+function renderCharts(rows) {
+  if (!bottleneckChart || !deptChart) return;   // Chart.js not loaded
+  // Chart A: bottlenecks by stage
+  const stateNames = Object.keys(STATE_COLORS);
+  const counts = STAGES.map(s => {
+    const c = Object.fromEntries(stateNames.map(n => [n, 0]));
+    rows.forEach(e => c[stageState(e, s)]++);
+    return c;
+  });
+  stateNames.forEach((n, i) => { bottleneckChart.data.datasets[i].data = counts.map(c => c[n]); });
+  bottleneckChart.update();
+
+  const unresolved = counts.map(c => rows.length - c['Completed']);
+  const max = Math.max(...unresolved);
+  const note = document.getElementById('bottleneck-note');
+  note.textContent = rows.length && max > 0
+    ? `Largest bottleneck: ${STAGES[unresolved.indexOf(max)].label} (${max} of ${rows.length} employees unresolved)`
+    : rows.length ? 'No unresolved items in the current selection' : 'No data for the current selection';
+
+  // Chart B: department breakdown
+  const byDept = DEPARTMENTS.map(d => rows.filter(e => e.department === d));
+  const ds = deptChart.data.datasets[0];
+  if (state.deptMode === 'load') {
+    ds.data = byDept.map(r => r.filter(e => overallStatus(e) !== 'Completed').length);
+    ds.label = 'Currently onboarding';
+    deptChart.options.scales.y.title.text = 'Employees onboarding';
+  } else {
+    ds.data = byDept.map(r => { const a = avg(r.filter(e => e.days_to_complete != null).map(e => e.days_to_complete)); return a == null ? null : +a.toFixed(1); });
+    ds.label = 'Avg days to complete';
+    deptChart.options.scales.y.title.text = 'Average days';
+  }
+  ds.backgroundColor = DEPARTMENTS.map(d => state.dept === 'All' || state.dept === d ? '#3b82f6' : '#cbd5e1');
+  deptChart.update();
+}
+
+/* ---------- Table ---------- */
+function renderTable(rows) {
+  const k = state.sortKey, dir = state.sortDir;
+  const sorted = [...rows].sort((a, b) => {
+    const va = a[k], vb = b[k];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;           // nulls always last
+    if (vb == null) return -1;
+    return (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb))) * dir;
+  });
+
+  document.getElementById('table-head').innerHTML = COLUMNS.map(c => {
+    const arrow = c.key === k ? (dir === 1 ? ' ▲' : ' ▼') : '';
+    return `<th scope="col" class="px-4 py-3 font-semibold whitespace-nowrap cursor-pointer select-none hover:text-slate-800" data-sort="${c.key}">${c.label}${arrow}</th>`;
+  }).join('');
+
+  const pages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  state.page = Math.min(state.page, pages);
+  const start = (state.page - 1) * PAGE_SIZE;
+  const slice = sorted.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('table-body').innerHTML = slice.length ? slice.map(e => `
+    <tr class="hover:bg-slate-50">
+      <td class="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">${esc(e.employee_id)}</td>
+      <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${esc(e.full_name)}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${esc(e.department)}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${esc(e.direct_manager)}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${fmtDate(e.start_date)}</td>
+      <td class="px-4 py-3">${badge(e.equipment_status)}</td>
+      <td class="px-4 py-3">${badge(e.paperwork_status)}</td>
+      <td class="px-4 py-3">${badge(e.training_status)}</td>
+      <td class="px-4 py-3 text-center">${e.csat_score != null ? e.csat_score : '—'}</td>
+      <td class="px-4 py-3 text-center">${e.days_to_complete != null ? e.days_to_complete : '—'}</td>
+    </tr>`).join('')
+    : `<tr><td colspan="10" class="px-4 py-10 text-center text-slate-500">No employees match the selected filters.</td></tr>`;
+
+  document.getElementById('result-count').textContent = `Showing ${rows.length} of ${EMPLOYEES.length} employees`;
+  document.getElementById('page-info').textContent = sorted.length
+    ? `${start + 1}–${Math.min(start + PAGE_SIZE, sorted.length)} of ${sorted.length} · Page ${state.page} of ${pages}`
+    : '0 results';
+  document.getElementById('prev').disabled = state.page <= 1;
+  document.getElementById('next').disabled = state.page >= pages;
+}
+
+/* ---------- CDN check ---------- */
+function checkCdn() {
+  const missing = [];
+  if (typeof window.tailwind === 'undefined') missing.push('Tailwind CSS');
+  if (typeof window.Chart === 'undefined') missing.push('Chart.js');
+  if (missing.length) {
+    const b = document.getElementById('cdn-warning');
+    b.textContent = 'Could not load ' + missing.join(' and ') + ' from the CDN. Check your internet connection and reload the page.';
+    b.style.display = 'block';
+  }
+  return typeof window.Chart !== 'undefined';
+}
+
+/* ---------- Render & events ---------- */
+function render() {
+  const rows = getFiltered();
+  renderKPIs(rows);
+  renderCharts(rows);
+  renderTable(rows);
+}
+
+function fillSelect(id, allLabel, values) {
+  document.getElementById(id).innerHTML =
+    [`<option value="All">${allLabel}</option>`, ...values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`)].join('');
+}
+
+function setDeptMode(mode) {
+  state.deptMode = mode;
+  document.getElementById('mode-load').className = 'px-3 py-1.5 ' + (mode === 'load' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50');
+  document.getElementById('mode-days').className = 'px-3 py-1.5 ' + (mode === 'days' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50');
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fillSelect('f-dept', 'All departments', DEPARTMENTS);
+  fillSelect('f-status', 'All statuses', ['Not Started', 'In Progress', 'Completed']);
+  fillSelect('f-manager', 'All managers', MANAGERS);
+
+  document.getElementById('f-search').addEventListener('input', e => { state.search = e.target.value; state.page = 1; render(); });
+  document.getElementById('f-dept').addEventListener('change', e => { state.dept = e.target.value; state.page = 1; render(); });
+  document.getElementById('f-status').addEventListener('change', e => { state.status = e.target.value; state.page = 1; render(); });
+  document.getElementById('f-manager').addEventListener('change', e => { state.manager = e.target.value; state.page = 1; render(); });
+  document.getElementById('f-reset').addEventListener('click', () => {
+    Object.assign(state, { search:'', dept:'All', status:'All', manager:'All', page:1 });
+    document.getElementById('f-search').value = '';
+    ['f-dept', 'f-status', 'f-manager'].forEach(id => document.getElementById(id).value = 'All');
+    render();
+  });
+  document.getElementById('prev').addEventListener('click', () => { state.page--; render(); });
+  document.getElementById('next').addEventListener('click', () => { state.page++; render(); });
+  document.getElementById('mode-load').addEventListener('click', () => setDeptMode('load'));
+  document.getElementById('mode-days').addEventListener('click', () => setDeptMode('days'));
+  document.getElementById('table-head').addEventListener('click', e => {
+    const th = e.target.closest('th[data-sort]');
+    if (!th) return;
+    const key = th.dataset.sort;
+    state.sortDir = state.sortKey === key ? -state.sortDir : 1;
+    state.sortKey = key;
+    render();
+  });
+
+  if (checkCdn()) initCharts();
+  render();
+});
+</script>
+</body>
+</html>
