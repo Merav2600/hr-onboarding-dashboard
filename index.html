@@ -10,6 +10,7 @@
 <body class="bg-slate-50 text-slate-800 antialiased">
 
 <div id="cdn-warning" role="alert" style="display:none" class="bg-red-600 text-white text-sm text-center px-4 py-2"></div>
+<div id="api-status" role="status" class="bg-blue-600 text-white text-sm text-center px-4 py-2">Loading data from Airtable...</div>
 
 <header class="bg-white border-b border-slate-200">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
@@ -19,7 +20,7 @@
     </div>
     <div class="text-sm text-slate-500 text-right">
       <div>Report date: <span class="font-medium text-slate-700">5 Nov 2026</span></div>
-      <div class="text-xs">Mock data &middot; 20 new hires</div>
+      <div id="data-source-label" class="text-xs text-emerald-600 font-medium">Live Airtable DB</div>
     </div>
   </div>
 </header>
@@ -110,48 +111,31 @@
     </div>
   </section>
 
-  <footer class="text-xs text-slate-400 text-center pb-4">All employee data is fictional and used for demonstration only.</footer>
+  <footer class="text-xs text-slate-400 text-center pb-4">Connected to Airtable Database API</footer>
 </main>
 
 <script>
+/* ---------- 1. Airtable Connection Settings ---------- */
+const AIRTABLE_BASE_ID = 'appHAh2YZmOt1lFyy';
+const AIRTABLE_TABLE_NAME = 'Employees';
+const AIRTABLE_TOKEN = 'pathagjzcorLorbDv.60f5bedeac0454f88e698cef43d51714e960ecd3e2bd82ba9e2e834139f26fbb';
+
 /* ---------- Configuration ---------- */
 const REPORT_DATE = new Date('2026-11-05T00:00:00');
 const TARGET_DAYS = 30;
 const PAGE_SIZE = 10;
 
-/* ---------- Mock data (schema per SPEC.md, Section 4) ---------- */
-const EMPLOYEES = [
-  { employee_id:'EMP-1001', full_name:'Dana Levi',       department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-09-14', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:12 },
-  { employee_id:'EMP-1002', full_name:'Noam Barak',      department:'Sales',            direct_manager:'Tamar Golan',  start_date:'2026-10-05', equipment_status:'Ordered',   paperwork_status:'In Progress', training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1003', full_name:'Yael Sharon',     department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-10-12', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1004', full_name:'Eitan Mor',       department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-10-19', equipment_status:'Blocked',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1005', full_name:'Shira Ben-David', department:'Finance',          direct_manager:'Lior Peretz',  start_date:'2026-09-21', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:18 },
-  { employee_id:'EMP-1006', full_name:'Amit Cohen',      department:'Customer Support', direct_manager:'Maya Shalev',  start_date:'2026-11-02', equipment_status:'Pending',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1007', full_name:'Roni Azulay',     department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-09-08', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:21 },
-  { employee_id:'EMP-1008', full_name:'Gal Mizrahi',     department:'Sales',            direct_manager:'Hila Amar',    start_date:'2026-09-28', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:14 },
-  { employee_id:'EMP-1009', full_name:'Tal Friedman',    department:'Operations',       direct_manager:'Gil Hadad',    start_date:'2026-10-07', equipment_status:'Delivered', paperwork_status:'In Progress', training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1010', full_name:'Liat Navon',      department:'HR',               direct_manager:'Noa Segal',    start_date:'2026-09-15', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:10 },
-  { employee_id:'EMP-1011', full_name:'Yuval Peled',     department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-10-14', equipment_status:'Blocked',   paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1012', full_name:'Michal Stern',    department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-09-22', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:3,    days_to_complete:27 },
-  { employee_id:'EMP-1013', full_name:'Idan Rosen',      department:'Sales',            direct_manager:'Tamar Golan',  start_date:'2026-10-21', equipment_status:'Ordered',   paperwork_status:'Pending',     training_status:'Not Started', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1014', full_name:'Adi Tzur',        department:'Customer Support', direct_manager:'Maya Shalev',  start_date:'2026-09-30', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:16 },
-  { employee_id:'EMP-1015', full_name:'Ofir Kaplan',     department:'Engineering',      direct_manager:'Omer Katz',    start_date:'2026-10-26', equipment_status:'Ordered',   paperwork_status:'In Progress', training_status:'Not Started', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1016', full_name:'Hadas Weiss',     department:'Finance',          direct_manager:'Lior Peretz',  start_date:'2026-10-09', equipment_status:'Delivered', paperwork_status:'Blocked',     training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1017', full_name:'Nadav Oren',      department:'Operations',       direct_manager:'Gil Hadad',    start_date:'2026-09-17', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:4,    days_to_complete:19 },
-  { employee_id:'EMP-1018', full_name:'Reut Biton',      department:'Marketing',        direct_manager:'Ron Avni',     start_date:'2026-10-28', equipment_status:'Pending',   paperwork_status:'In Progress', training_status:'Not Started', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1019', full_name:'Elad Haim',       department:'Engineering',      direct_manager:'Eli Dayan',    start_date:'2026-10-02', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'In Progress', csat_score:null, days_to_complete:null },
-  { employee_id:'EMP-1020', full_name:'Karin Dror',      department:'Sales',            direct_manager:'Hila Amar',    start_date:'2026-09-10', equipment_status:'Delivered', paperwork_status:'Completed',   training_status:'Completed',   csat_score:5,    days_to_complete:23 }
-];
+let EMPLOYEES = [];
+let DEPARTMENTS = [];
+let MANAGERS = [];
 
 /* ---------- Domain helpers ---------- */
 const STAGES = [
-  { key:'equipment_status', label:'IT Equipment',       done:'Delivered', progress:['Ordered'],     },
-  { key:'paperwork_status', label:'Document Signing',   done:'Completed', progress:['In Progress'], },
+  { key:'equipment_status', label:'IT Equipment',        done:'Delivered', progress:['Ordered'],     },
+  { key:'paperwork_status', label:'Document Signing',    done:'Completed', progress:['In Progress'], },
   { key:'training_status',  label:'Mandatory Training', done:'Completed', progress:['In Progress'], }
 ];
 const STATE_COLORS = { 'Completed':'#10b981', 'In Progress':'#f59e0b', 'Not Started':'#94a3b8', 'Blocked':'#ef4444' };
-const DEPARTMENTS = [...new Set(EMPLOYEES.map(e => e.department))].sort();
-const MANAGERS = [...new Set(EMPLOYEES.map(e => e.direct_manager))].sort();
 
 function stageState(e, s) {
   const v = e[s.key];
@@ -167,20 +151,22 @@ function overallStatus(e) {
   return 'In Progress';
 }
 function daysSinceStart(e) {
+  if (!e.start_date) return 0;
   return Math.floor((REPORT_DATE - new Date(e.start_date + 'T00:00:00')) / 86400000);
 }
 const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
 
 function badge(value) {
+  const val = value || 'Pending';
   const map = {
     'Completed':'bg-emerald-100 text-emerald-800', 'Delivered':'bg-emerald-100 text-emerald-800',
     'In Progress':'bg-amber-100 text-amber-800',   'Ordered':'bg-amber-100 text-amber-800',
     'Pending':'bg-slate-100 text-slate-600',       'Not Started':'bg-slate-100 text-slate-600',
     'Blocked':'bg-red-100 text-red-800'
   };
-  return `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${map[value] || 'bg-slate-100 text-slate-600'}">${esc(value)}</span>`;
+  return `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${map[val] || 'bg-slate-100 text-slate-600'}">${esc(val)}</span>`;
 }
 
 /* ---------- State ---------- */
@@ -197,7 +183,7 @@ const COLUMNS = [
 function getFiltered() {
   const q = state.search.trim().toLowerCase();
   return EMPLOYEES.filter(e =>
-    (!q || e.full_name.toLowerCase().includes(q) || e.employee_id.toLowerCase().includes(q)) &&
+    (!q || (e.full_name || '').toLowerCase().includes(q) || (e.employee_id || '').toLowerCase().includes(q)) &&
     (state.dept === 'All' || e.department === state.dept) &&
     (state.status === 'All' || overallStatus(e) === state.status) &&
     (state.manager === 'All' || e.direct_manager === state.manager)
@@ -208,11 +194,11 @@ function getFiltered() {
 function renderKPIs(rows) {
   const active = rows.filter(e => overallStatus(e) !== 'Completed');
   const overdue = active.filter(e => daysSinceStart(e) > TARGET_DAYS).length;
-  const avgDays = avg(rows.filter(e => e.days_to_complete != null).map(e => e.days_to_complete));
+  const avgDays = avg(rows.filter(e => e.days_to_complete != null).map(e => Number(e.days_to_complete)));
   const totalTasks = rows.length * STAGES.length;
   const doneTasks = rows.reduce((n, e) => n + STAGES.filter(s => stageState(e, s) === 'Completed').length, 0);
   const rate = totalTasks ? Math.round(doneTasks / totalTasks * 100) : null;
-  const avgCsat = avg(rows.filter(e => e.csat_score != null).map(e => e.csat_score));
+  const avgCsat = avg(rows.filter(e => e.csat_score != null).map(e => Number(e.csat_score)));
 
   document.getElementById('kpi-onboarding').textContent = rows.length ? active.length : '—';
   const od = document.getElementById('kpi-overdue');
@@ -269,8 +255,7 @@ function initCharts() {
 }
 
 function renderCharts(rows) {
-  if (!bottleneckChart || !deptChart) return;   // Chart.js not loaded
-  // Chart A: bottlenecks by stage
+  if (!bottleneckChart || !deptChart) return;
   const stateNames = Object.keys(STATE_COLORS);
   const counts = STAGES.map(s => {
     const c = Object.fromEntries(stateNames.map(n => [n, 0]));
@@ -287,7 +272,7 @@ function renderCharts(rows) {
     ? `Largest bottleneck: ${STAGES[unresolved.indexOf(max)].label} (${max} of ${rows.length} employees unresolved)`
     : rows.length ? 'No unresolved items in the current selection' : 'No data for the current selection';
 
-  // Chart B: department breakdown
+  deptChart.data.labels = DEPARTMENTS;
   const byDept = DEPARTMENTS.map(d => rows.filter(e => e.department === d));
   const ds = deptChart.data.datasets[0];
   if (state.deptMode === 'load') {
@@ -295,7 +280,7 @@ function renderCharts(rows) {
     ds.label = 'Currently onboarding';
     deptChart.options.scales.y.title.text = 'Employees onboarding';
   } else {
-    ds.data = byDept.map(r => { const a = avg(r.filter(e => e.days_to_complete != null).map(e => e.days_to_complete)); return a == null ? null : +a.toFixed(1); });
+    ds.data = byDept.map(r => { const a = avg(r.filter(e => e.days_to_complete != null).map(e => Number(e.days_to_complete))); return a == null ? null : +a.toFixed(1); });
     ds.label = 'Avg days to complete';
     deptChart.options.scales.y.title.text = 'Average days';
   }
@@ -309,7 +294,7 @@ function renderTable(rows) {
   const sorted = [...rows].sort((a, b) => {
     const va = a[k], vb = b[k];
     if (va == null && vb == null) return 0;
-    if (va == null) return 1;           // nulls always last
+    if (va == null) return 1;
     if (vb == null) return -1;
     return (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb))) * dir;
   });
@@ -337,7 +322,7 @@ function renderTable(rows) {
       <td class="px-4 py-3 text-center">${e.csat_score != null ? e.csat_score : '—'}</td>
       <td class="px-4 py-3 text-center">${e.days_to_complete != null ? e.days_to_complete : '—'}</td>
     </tr>`).join('')
-    : `<tr><td colspan="10" class="px-4 py-10 text-center text-slate-500">No employees match the selected filters.</td></tr>`;
+    : `<tr><td colspan="10" class="px-4 py-10 text-center text-slate-500">No employees found.</td></tr>`;
 
   document.getElementById('result-count').textContent = `Showing ${rows.length} of ${EMPLOYEES.length} employees`;
   document.getElementById('page-info').textContent = sorted.length
@@ -347,20 +332,18 @@ function renderTable(rows) {
   document.getElementById('next').disabled = state.page >= pages;
 }
 
-/* ---------- CDN check ---------- */
 function checkCdn() {
   const missing = [];
   if (typeof window.tailwind === 'undefined') missing.push('Tailwind CSS');
   if (typeof window.Chart === 'undefined') missing.push('Chart.js');
   if (missing.length) {
     const b = document.getElementById('cdn-warning');
-    b.textContent = 'Could not load ' + missing.join(' and ') + ' from the CDN. Check your internet connection and reload the page.';
+    b.textContent = 'Could not load ' + missing.join(' and ') + ' from the CDN.';
     b.style.display = 'block';
   }
   return typeof window.Chart !== 'undefined';
 }
 
-/* ---------- Render & events ---------- */
 function render() {
   const rows = getFiltered();
   renderKPIs(rows);
@@ -380,10 +363,54 @@ function setDeptMode(mode) {
   render();
 }
 
+/* ---------- 2. Fetch Data from Airtable ---------- */
+async function loadFromAirtable() {
+  const statusBanner = document.getElementById('api-status');
+  try {
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Airtable API error (${response.status}): בדקי את ה-Base ID, שם הטבלה וה-Token`);
+    }
+
+    const data = await response.json();
+    EMPLOYEES = data.records.map(record => ({
+      employee_id: record.fields.employee_id || record.fields['Employee ID'] || '',
+      full_name: record.fields.full_name || '',
+      department: record.fields.department || 'Unassigned',
+      direct_manager: record.fields.direct_manager || '',
+      start_date: record.fields.start_date || null,
+      equipment_status: record.fields.equipment_status || 'Pending',
+      paperwork_status: record.fields.paperwork_status || 'Pending',
+      training_status: record.fields.training_status || 'Not Started',
+      csat_score: record.fields.csat_score ?? null,
+      days_to_complete: record.fields.days_to_complete ?? null
+    }));
+
+    DEPARTMENTS = [...new Set(EMPLOYEES.map(e => e.department))].sort();
+    MANAGERS = [...new Set(EMPLOYEES.map(e => e.direct_manager).filter(Boolean))].sort();
+
+    fillSelect('f-dept', 'All departments', DEPARTMENTS);
+    fillSelect('f-manager', 'All managers', MANAGERS);
+    document.getElementById('data-source-label').textContent = `Live Airtable DB · ${EMPLOYEES.length} employees`;
+
+    statusBanner.style.display = 'none';
+    render();
+  } catch (err) {
+    statusBanner.className = 'bg-red-600 text-white text-sm text-center px-4 py-2';
+    statusBanner.textContent = 'שגיאה בחיבור ל-Airtable: ' + err.message;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  fillSelect('f-dept', 'All departments', DEPARTMENTS);
+  fillSelect('f-dept', 'All departments', []);
   fillSelect('f-status', 'All statuses', ['Not Started', 'In Progress', 'Completed']);
-  fillSelect('f-manager', 'All managers', MANAGERS);
+  fillSelect('f-manager', 'All managers', []);
 
   document.getElementById('f-search').addEventListener('input', e => { state.search = e.target.value; state.page = 1; render(); });
   document.getElementById('f-dept').addEventListener('change', e => { state.dept = e.target.value; state.page = 1; render(); });
@@ -409,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (checkCdn()) initCharts();
-  render();
+  loadFromAirtable();
 });
 </script>
 </body>
