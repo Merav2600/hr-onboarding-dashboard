@@ -462,13 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       upcoming = upcoming.slice(0, 3);
 
-      const year = new Date().getFullYear();
-      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/IL`);
-      if (!response.ok) return;
-      const holidays = await response.json();
-      const today = new Date().toISOString().split('T')[0];
-      const upcoming = holidays.filter(h => h.date >= today).slice(0, 3);
-
       if (!upcoming.length) return;
 
       const banner = document.createElement('div');
@@ -476,7 +469,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const itemsHtml = upcoming.map(h => {
         const formattedDate = new Date(h.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' });
-        return `<span style="background: #ffffff; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 8px; font-size: 13px; color: #1e3a8a;"><strong>${h.localName}</strong> (${formattedDate})</span>`;
+        return `<span style="background: #ffffff; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 8px; font-size: 13px; color: #1e3a8a;"><strong>${esc(h.localName)} 
+}</strong> (${formattedDate})</span>`;
       }).join(' ');
 
       banner.innerHTML = `
