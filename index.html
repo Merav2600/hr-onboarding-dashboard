@@ -443,6 +443,25 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
+            const year = new Date().getFullYear();
+      const today = new Date().toISOString().split('T')[0];
+
+      // פונקציית עזר: מושכת את רשימת החגים לשנה נתונה; בכשל מחזירה רשימה ריקה
+      const getHolidays = async (y) => {
+        const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/IL`);
+        return response.ok ? response.json() : [];
+      };
+
+      // שלב 1: חגים שנותרו בשנה הנוכחית
+      let upcoming = (await getHolidays(year)).filter(h => h.date >= today);
+
+      // שלב 2: אם נותרו פחות מ-3, משלימים מרשימת השנה הבאה
+      if (upcoming.length < 3) {
+        upcoming = upcoming.concat(await getHolidays(year + 1));
+      }
+
+      upcoming = upcoming.slice(0, 3);
+
       const year = new Date().getFullYear();
       const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/IL`);
       if (!response.ok) return;
