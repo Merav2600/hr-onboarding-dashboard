@@ -443,10 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const response = await fetch('https://date.nager.at/api/v3/NextPublicHolidays/IL');
+      const year = new Date().getFullYear();
+      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/IL`);
       if (!response.ok) return;
       const holidays = await response.json();
-      const upcoming = holidays.slice(0, 3);
+      const today = new Date().toISOString().split('T')[0];
+      const upcoming = holidays.filter(h => h.date >= today).slice(0, 3);
+
+      if (!upcoming.length) return;
 
       const banner = document.createElement('div');
       banner.style.cssText = 'max-width: 1280px; margin: 16px auto; padding: 14px 20px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-family: sans-serif; direction: rtl;';
@@ -471,5 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 </script>
+
 </body>
 </html>
