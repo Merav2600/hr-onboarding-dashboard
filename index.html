@@ -469,8 +469,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const itemsHtml = upcoming.map(h => {
         const formattedDate = new Date(h.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' });
-        return `<span style="background: #ffffff; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 8px; font-size: 13px; color: #1e3a8a;"><strong>${esc(h.localName)} 
-}</strong> (${formattedDate})</span>`;
+       
+        return `<span style="background: #ffffff; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 8px; font-size: 13px; color: #1e3a8a;"><strong>esc(h.localName)</strong>({formattedDate})</span>`;
+
       }).join(' ');
 
       banner.innerHTML = `
