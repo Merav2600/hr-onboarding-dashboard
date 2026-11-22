@@ -448,8 +448,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // פונקציית עזר: מושכת את רשימת החגים לשנה נתונה; בכשל מחזירה רשימה ריקה
       const getHolidays = async (y) => {
-        const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/IL`);
-        return response.ok ? response.json() : [];
+        
+        const response = await fetch(`https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&mod=on&i=on&year=${y}&month=x`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return data.items.filter(i => i.category === 'holiday').map(i => ({ date: i.date.slice(0, 10), localName: i.hebrew }));
+
       };
 
       // שלב 1: חגים שנותרו בשנה הנוכחית
