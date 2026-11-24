@@ -1,0 +1,478 @@
+{
+    "name": "Send data from a Webhook to Airtable",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 4175294,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "setupValidation": {
+                    "version": 1,
+                    "configuration": "c2997f8d00d3e58b",
+                    "result": {
+                        "valid": true,
+                        "fields": []
+                    }
+                },
+                "restore": {
+                    "parameters": {
+                        "hook": {
+                            "label": "Bonus 2 Webhook",
+                            "data": {
+                                "editable": "true"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hook",
+                        "type": "hook:gateway-webhook",
+                        "label": "Webhook",
+                        "required": true
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of results"
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "full_name",
+                        "type": "text"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "airtable:ActionCreateRecord",
+            "version": 3,
+            "parameters": {
+                "__IMTCONN__": 13383734
+            },
+            "mapper": {
+                "base": "appHAh2YZmOt1lFyy",
+                "typecast": false,
+                "useColumnId": false,
+                "table": "tblgAz6zli8Wlruvj",
+                "record": {
+                    "fldVPGzd0y7oObwLA": "{{1.full_name}}"
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "setupValidation": {
+                    "version": 1,
+                    "configuration": "3f7b24382c8d299e",
+                    "result": {
+                        "valid": true,
+                        "fields": []
+                    }
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "HR Onboarding DBUser ID: usrTB0d0shQ3M2FVX",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "airtable3"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "base": {
+                            "label": "HR Onboarding DB"
+                        },
+                        "typecast": {
+                            "mode": "chose"
+                        },
+                        "useColumnId": {
+                            "mode": "chose"
+                        },
+                        "table": {
+                            "nested": [
+                                {
+                                    "name": "record",
+                                    "spec": [
+                                        {
+                                            "name": "fldVPGzd0y7oObwLA",
+                                            "label": "employee_id",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "name": "fldMNCKBE4V2s4d9y",
+                                            "label": "full_name",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "name": "fldOSNIoknU3oyvsd",
+                                            "label": "department",
+                                            "type": "select",
+                                            "mode": "edit",
+                                            "dynamic": true,
+                                            "validate": false,
+                                            "options": [
+                                                {
+                                                    "label": "Engineering",
+                                                    "value": "Engineering"
+                                                },
+                                                {
+                                                    "label": "Sales",
+                                                    "value": "Sales"
+                                                },
+                                                {
+                                                    "label": "Marketing",
+                                                    "value": "Marketing"
+                                                },
+                                                {
+                                                    "label": "Finance",
+                                                    "value": "Finance"
+                                                },
+                                                {
+                                                    "label": "Customer Support",
+                                                    "value": "Customer Support"
+                                                },
+                                                {
+                                                    "label": "Operations",
+                                                    "value": "Operations"
+                                                },
+                                                {
+                                                    "label": "HR",
+                                                    "value": "HR"
+                                                },
+                                                {
+                                                    "label": "department",
+                                                    "value": "department"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "fld4yM0pSvDNIs47R",
+                                            "label": "direct_manager",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "name": "fldhDkmHHUKmAiYe2",
+                                            "label": "start_date",
+                                            "type": "date",
+                                            "time": false
+                                        },
+                                        {
+                                            "name": "fldzDpw3zYIb0eHVt",
+                                            "label": "equipment_status",
+                                            "type": "select",
+                                            "mode": "edit",
+                                            "dynamic": true,
+                                            "validate": false,
+                                            "options": [
+                                                {
+                                                    "label": "Delivered",
+                                                    "value": "Delivered"
+                                                },
+                                                {
+                                                    "label": "Ordered",
+                                                    "value": "Ordered"
+                                                },
+                                                {
+                                                    "label": "Pending",
+                                                    "value": "Pending"
+                                                },
+                                                {
+                                                    "label": "Blocked",
+                                                    "value": "Blocked"
+                                                },
+                                                {
+                                                    "label": "equipment_status",
+                                                    "value": "equipment_status"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "fld26Ouols7bwM7px",
+                                            "label": "paperwork_status",
+                                            "type": "select",
+                                            "mode": "edit",
+                                            "dynamic": true,
+                                            "validate": false,
+                                            "options": [
+                                                {
+                                                    "label": "Completed",
+                                                    "value": "Completed"
+                                                },
+                                                {
+                                                    "label": "In Progress",
+                                                    "value": "In Progress"
+                                                },
+                                                {
+                                                    "label": "Pending",
+                                                    "value": "Pending"
+                                                },
+                                                {
+                                                    "label": "Blocked",
+                                                    "value": "Blocked"
+                                                },
+                                                {
+                                                    "label": "paperwork_status",
+                                                    "value": "paperwork_status"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "fld7OiQ8sSDZab7Fg",
+                                            "label": "training_status",
+                                            "type": "select",
+                                            "mode": "edit",
+                                            "dynamic": true,
+                                            "validate": false,
+                                            "options": [
+                                                {
+                                                    "label": "Completed",
+                                                    "value": "Completed"
+                                                },
+                                                {
+                                                    "label": "In Progress",
+                                                    "value": "In Progress"
+                                                },
+                                                {
+                                                    "label": "Not Started",
+                                                    "value": "Not Started"
+                                                },
+                                                {
+                                                    "label": "training_status",
+                                                    "value": "training_status"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "fld9znfnJwYhoGHEq",
+                                            "label": "csat_score",
+                                            "type": "number"
+                                        },
+                                        {
+                                            "name": "fldoHbwyS7jxZjeAB",
+                                            "label": "days_to_complete",
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": "Record"
+                                }
+                            ],
+                            "label": "Table 1"
+                        },
+                        "record": {
+                            "nested": {
+                                "fldOSNIoknU3oyvsd": {
+                                    "mode": "edit"
+                                },
+                                "fldzDpw3zYIb0eHVt": {
+                                    "mode": "edit"
+                                },
+                                "fld26Ouols7bwM7px": {
+                                    "mode": "edit"
+                                },
+                                "fld7OiQ8sSDZab7Fg": {
+                                    "mode": "edit"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:airtable3,airtable2",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "base",
+                        "type": "select",
+                        "label": "Base",
+                        "required": true
+                    },
+                    {
+                        "name": "typecast",
+                        "type": "boolean",
+                        "label": "Smart links",
+                        "required": true
+                    },
+                    {
+                        "name": "useColumnId",
+                        "type": "boolean",
+                        "label": "Use column ID",
+                        "required": true
+                    },
+                    {
+                        "name": "table",
+                        "type": "select",
+                        "label": "Table",
+                        "required": true
+                    },
+                    {
+                        "name": "record",
+                        "type": "collection",
+                        "label": "Record",
+                        "spec": [
+                            {
+                                "name": "fldVPGzd0y7oObwLA",
+                                "type": "text",
+                                "label": "employee_id"
+                            },
+                            {
+                                "name": "fldMNCKBE4V2s4d9y",
+                                "type": "text",
+                                "label": "full_name"
+                            },
+                            {
+                                "name": "fldOSNIoknU3oyvsd",
+                                "type": "select",
+                                "label": "department",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fld4yM0pSvDNIs47R",
+                                "type": "text",
+                                "label": "direct_manager"
+                            },
+                            {
+                                "name": "fldhDkmHHUKmAiYe2",
+                                "type": "date",
+                                "label": "start_date",
+                                "time": false
+                            },
+                            {
+                                "name": "fldzDpw3zYIb0eHVt",
+                                "type": "select",
+                                "label": "equipment_status",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fld26Ouols7bwM7px",
+                                "type": "select",
+                                "label": "paperwork_status",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fld7OiQ8sSDZab7Fg",
+                                "type": "select",
+                                "label": "training_status",
+                                "mode": "edit"
+                            },
+                            {
+                                "name": "fld9znfnJwYhoGHEq",
+                                "type": "number",
+                                "label": "csat_score"
+                            },
+                            {
+                                "name": "fldoHbwyS7jxZjeAB",
+                                "type": "number",
+                                "label": "days_to_complete"
+                            }
+                        ]
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "id",
+                        "type": "text",
+                        "label": "ID"
+                    },
+                    {
+                        "name": "createdTime",
+                        "type": "date",
+                        "label": "Created time"
+                    },
+                    {
+                        "name": "employee_id",
+                        "label": "employee_id",
+                        "type": "text"
+                    },
+                    {
+                        "name": "full_name",
+                        "label": "full_name",
+                        "type": "text"
+                    },
+                    {
+                        "name": "department",
+                        "label": "department",
+                        "type": "text"
+                    },
+                    {
+                        "name": "direct_manager",
+                        "label": "direct_manager",
+                        "type": "text"
+                    },
+                    {
+                        "name": "start_date",
+                        "label": "start_date",
+                        "type": "date",
+                        "time": false
+                    },
+                    {
+                        "name": "equipment_status",
+                        "label": "equipment_status",
+                        "type": "text"
+                    },
+                    {
+                        "name": "paperwork_status",
+                        "label": "paperwork_status",
+                        "type": "text"
+                    },
+                    {
+                        "name": "training_status",
+                        "label": "training_status",
+                        "type": "text"
+                    },
+                    {
+                        "name": "csat_score",
+                        "label": "csat_score",
+                        "type": "number"
+                    },
+                    {
+                        "name": "days_to_complete",
+                        "label": "days_to_complete",
+                        "type": "number"
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
